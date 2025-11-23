@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tomato Taste Test - Triple Elimination</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 700px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .setup-screen, .comparison-screen, .results-screen {
+            display: none;
+        }
+
+        .setup-screen.active, .comparison-screen.active, .results-screen.active {
+            display: block;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            margin-bottom: 20px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+        }
+
+        button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .progress {
+            background: #f0f0f0;
+            border-radius: 10px;
+            height: 8px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            height: 100%;
+            transition: width 0.3s;
+        }
+
+        .round-info {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .round-number {
+            font-size: 24px;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .instruction {
+            text-align: center;
+            color: #666;
+            margin-bottom: 25px;
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        .comparison {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .tomato-option {
+            background: #f8f9fa;
+            border: 3px solid transparent;
+            border-radius: 12px;
+            padding: 20px 15px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .tomato-number {
+            font-size: 42px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .selection-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .select-btn {
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+            width: 100%;
+        }
+
+        .select-best {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .select-best:hover {
+            background: #c3e6cb;
+        }
+
+        .select-best.selected {
+            background: #28a745;
+            color: white;
+            border-color: #1e7e34;
+        }
+
+        .select-worst {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .select-worst:hover {
+            background: #f5c6cb;
+        }
+
+        .select-worst.selected {
+            background: #dc3545;
+            color: white;
+            border-color: #bd2130;
+        }
+
+        .rank-btn {
+            background: #e9ecef;
+            color: #495057;
+            margin: 3px 0;
+        }
+
+        .rank-btn:hover {
+            background: #dee2e6;
+        }
+
+        .rank-btn.selected {
+            background: #667eea;
+            color: white;
+        }
+
+        .next-button {
+            margin-top: 20px;
+        }
+
+        .results-table {
+            margin: 30px 0;
+        }
+
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid #e0e0e0;
+            background: #f8f9fa;
+            margin-bottom: 8px;
+            border-radius: 8px;
+        }
+
+        .result-row.podium-1 {
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+            border: 3px solid #d4af37;
+        }
+
+        .result-row.podium-2 {
+            background: linear-gradient(135deg, #c0c0c0 0%, #e8e8e8 100%);
+            border: 3px solid #a8a8a8;
+        }
+
+        .result-row.podium-3 {
+            background: linear-gradient(135deg, #cd7f32 0%, #e6a75c 100%);
+            border: 3px solid #b8732d;
+        }
+
+        .result-rank {
+            font-weight: 700;
+            color: #333;
+            font-size: 20px;
+            width: 50px;
+        }
+
+        .result-can {
+            flex: 1;
+            font-size: 22px;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .result-medal {
+            font-size: 28px;
+        }
+
+        .export-area {
+            background: #f8f9fa;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            margin: 20px 0;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .button-secondary {
+            background: #6c757d;
+        }
+
+        .button-secondary:hover {
+            background: #5a6268;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 25px;
+            }
+
+            .comparison {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            .tomato-number {
+                font-size: 36px;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .comparison {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Setup Screen -->
+        <div class="setup-screen active">
+            <h1>🍅 Tomato Taste Test</h1>
+            <p class="subtitle">Triple-elimination tournament to find the top 3 pizza sauce tomatoes</p>
+
+            <label for="taster-name">Your Name:</label>
+            <input type="text" id="taster-name" placeholder="Enter your name" autocomplete="name">
+
+            <button onclick="startTest()">Start Tasting</button>
+        </div>
+
+        <!-- Comparison Screen -->
+        <div class="comparison-screen">
+            <div class="progress">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+
+            <div class="round-info">
+                <div class="round-number" id="round-number">Round 1</div>
+                <div id="comparison-count">Comparison 1 of 6</div>
+            </div>
+
+            <p class="instruction" id="instruction">Pick the BEST and WORST from this group</p>
+
+            <div style="text-align: center; margin-bottom: 15px;">
+                <small style="color: #28a745; font-size: 12px;" id="save-indicator">✓ Progress auto-saved</small>
+            </div>
+
+            <div class="comparison" id="comparison-container"></div>
+
+            <button class="next-button" id="next-button" onclick="nextComparison()" disabled>
+                Next Comparison
+            </button>
+        </div>
+
+        <!-- Results Screen -->
+        <div class="results-screen">
+            <h1>🏆 Results Complete!</h1>
+            <p class="subtitle">Thank you, <span id="result-taster-name"></span>!</p>
+
+            <div class="results-table" id="results-table"></div>
+
+            <p style="margin: 20px 0; color: #666; font-size: 14px;">
+                Copy the CSV data below and text it to Kyle:
+            </p>
+
+            <div class="export-area" id="export-data"></div>
+
+            <div class="button-group">
+                <button onclick="copyResults()">Copy Results</button>
+                <button class="button-secondary" onclick="resetTest()">Start Over</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ABOUTME: Triple-elimination tournament logic for tomato taste test
+        // ABOUTME: Implements 3 rounds with best/worst selection to determine top 3 ranked tomatoes
+
+        const TOTAL_CANS = 12;
+
+        let tasterName = '';
+        let currentRound = 1;
+        let currentComparison = 0;
+        let currentCans = [];
+        let selectedBest = null;
+        let selectedWorst = null;
+
+        // Track all comparison results
+        let allResults = [];
+
+        // Current round structure
+        let roundStructure = {
+            1: { groupSize: 4, comparisons: 3, selectBestAndWorst: true },
+            2: { groupSize: 3, comparisons: 2, selectBestAndWorst: false },
+            3: { groupSize: 3, comparisons: 1, selectBestAndWorst: false }
+        };
+
+        let round1Winners = [];
+        let round1Uncertain = [];
+        let round2Winners = [];
+        let finalTop3 = [];
+        let round1Pairings = [];
+
+        function shuffleArray(array) {
+            const arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        function saveState() {
+            const state = {
+                tasterName,
+                currentRound,
+                currentComparison,
+                allResults,
+                round1Winners,
+                round1Uncertain,
+                round2Winners,
+                finalTop3,
+                round1Pairings
+            };
+            localStorage.setItem('tomatoTasteTest', JSON.stringify(state));
+        }
+
+        function loadState() {
+            const saved = localStorage.getItem('tomatoTasteTest');
+            if (saved) {
+                try {
+                    const state = JSON.parse(saved);
+                    tasterName = state.tasterName;
+                    currentRound = state.currentRound;
+                    currentComparison = state.currentComparison;
+                    allResults = state.allResults;
+                    round1Winners = state.round1Winners;
+                    round1Uncertain = state.round1Uncertain;
+                    round2Winners = state.round2Winners;
+                    finalTop3 = state.finalTop3;
+                    round1Pairings = state.round1Pairings;
+                    return true;
+                } catch (e) {
+                    console.error('Failed to load saved state', e);
+                    return false;
+                }
+            }
+            return false;
+        }
+
+        function clearState() {
+            localStorage.removeItem('tomatoTasteTest');
+        }
+
+        function startTest() {
+            const nameInput = document.getElementById('taster-name');
+            tasterName = nameInput.value.trim();
+
+            if (!tasterName) {
+                alert('Please enter your name');
+                return;
+            }
+
+            allResults = [];
+            round1Winners = [];
+            round1Uncertain = [];
+            round2Winners = [];
+            finalTop3 = [];
+            currentRound = 1;
+            currentComparison = 0;
+
+            // Pre-generate Round 1 pairings to avoid duplicates
+            const allCans = shuffleArray(Array.from({length: TOTAL_CANS}, (_, i) => i + 1));
+            round1Pairings = [
+                allCans.slice(0, 4),
+                allCans.slice(4, 8),
+                allCans.slice(8, 12)
+            ];
+
+            saveState();
+
+            document.querySelector('.setup-screen').classList.remove('active');
+            document.querySelector('.comparison-screen').classList.add('active');
+
+            showComparison();
+        }
+
+        // On page load, check for saved state
+        window.addEventListener('DOMContentLoaded', () => {
+            if (loadState()) {
+                // Resume from saved state
+                if (finalTop3.length > 0) {
+                    // Already completed, show results
+                    document.querySelector('.setup-screen').classList.remove('active');
+                    showResults();
+                } else {
+                    // In progress, resume comparison
+                    document.querySelector('.setup-screen').classList.remove('active');
+                    document.querySelector('.comparison-screen').classList.add('active');
+                    showComparison();
+                }
+            }
+        });
+
+        function showComparison() {
+            selectedBest = null;
+            selectedWorst = null;
+            document.getElementById('next-button').disabled = true;
+
+            // Determine which cans to show
+            if (currentRound === 1) {
+                // Round 1: Use pre-generated pairings
+                currentCans = round1Pairings[currentComparison];
+            } else if (currentRound === 2) {
+                // Round 2: Top 3 winners + top 3 uncertain, make 2 groups of 3
+                const pool = shuffleArray([...round1Winners, ...round1Uncertain]);
+
+                if (currentComparison === 0) {
+                    currentCans = pool.slice(0, 3);
+                } else {
+                    // Second comparison uses remaining cans not in round2Winners
+                    const remaining = pool.filter(can => !round2Winners.includes(can));
+                    currentCans = remaining.slice(0, 3);
+                }
+            } else if (currentRound === 3) {
+                // Round 3: Final 2 winners + 1 runner-up
+                const allCandidates = [...round1Winners, ...round1Uncertain];
+                const runnerUp = allCandidates.filter(can => !round2Winners.includes(can))[0];
+                currentCans = [...round2Winners, runnerUp];
+            }
+
+            renderComparison();
+            updateProgress();
+        }
+
+        function renderComparison() {
+            const container = document.getElementById('comparison-container');
+            const config = roundStructure[currentRound];
+
+            if (currentRound === 1) {
+                document.getElementById('instruction').textContent = 'Pick the BEST and WORST from this group';
+            } else if (currentRound === 3) {
+                document.getElementById('instruction').textContent = 'Rank these 3 cans from best to worst (1st, 2nd, 3rd)';
+            } else {
+                document.getElementById('instruction').textContent = 'Pick the BEST from this group';
+            }
+
+            container.innerHTML = currentCans.map(can => `
+                <div class="tomato-option" id="can-${can}">
+                    <div class="tomato-number">${can}</div>
+                    <div class="selection-buttons" id="buttons-${can}">
+                        ${currentRound === 3 ? `
+                            <button class="select-btn rank-btn" onclick="selectRank(${can}, 1)">1st Place</button>
+                            <button class="select-btn rank-btn" onclick="selectRank(${can}, 2)">2nd Place</button>
+                            <button class="select-btn rank-btn" onclick="selectRank(${can}, 3)">3rd Place</button>
+                        ` : `
+                            <button class="select-btn select-best" onclick="selectBest(${can})">Best</button>
+                            ${config.selectBestAndWorst ? '<button class="select-btn select-worst" onclick="selectWorst(' + can + ')">Worst</button>' : ''}
+                        `}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function selectBest(can) {
+            selectedBest = can;
+
+            // Clear all best selections
+            document.querySelectorAll('.select-best').forEach(btn => btn.classList.remove('selected'));
+
+            // Mark this one as selected
+            const btn = document.querySelector(`#can-${can} .select-best`);
+            btn.classList.add('selected');
+
+            checkNextEnabled();
+        }
+
+        function selectWorst(can) {
+            selectedWorst = can;
+
+            // Clear all worst selections
+            document.querySelectorAll('.select-worst').forEach(btn => btn.classList.remove('selected'));
+
+            // Mark this one as selected
+            const btn = document.querySelector(`#can-${can} .select-worst`);
+            btn.classList.add('selected');
+
+            checkNextEnabled();
+        }
+
+        let rankSelections = { first: null, second: null, third: null };
+
+        function selectRank(can, rank) {
+            const rankKey = rank === 1 ? 'first' : rank === 2 ? 'second' : 'third';
+
+            // Clear previous selection for this rank
+            if (rankSelections[rankKey] !== null) {
+                const prevCan = rankSelections[rankKey];
+                const prevBtn = document.querySelector(`#can-${prevCan} .rank-btn:nth-child(${rank})`);
+                if (prevBtn) prevBtn.classList.remove('selected');
+            }
+
+            // Clear this can from other ranks
+            Object.keys(rankSelections).forEach(key => {
+                if (rankSelections[key] === can) rankSelections[key] = null;
+            });
+
+            // Set new selection
+            rankSelections[rankKey] = can;
+
+            // Clear all buttons for this can
+            document.querySelectorAll(`#can-${can} .rank-btn`).forEach(btn => btn.classList.remove('selected'));
+
+            // Mark this button as selected
+            const btn = document.querySelector(`#can-${can} .rank-btn:nth-child(${rank})`);
+            btn.classList.add('selected');
+
+            checkNextEnabled();
+        }
+
+        function checkNextEnabled() {
+            const config = roundStructure[currentRound];
+
+            if (currentRound === 3) {
+                // Need all 3 ranks selected
+                document.getElementById('next-button').disabled = !(rankSelections.first && rankSelections.second && rankSelections.third);
+            } else if (config.selectBestAndWorst) {
+                document.getElementById('next-button').disabled = !(selectedBest && selectedWorst && selectedBest !== selectedWorst);
+            } else {
+                document.getElementById('next-button').disabled = !selectedBest;
+            }
+        }
+
+        function nextComparison() {
+            // Record results
+            if (currentRound === 1) {
+                round1Winners.push(selectedBest);
+                const worst = selectedWorst;
+                const uncertain = currentCans.filter(can => can !== selectedBest && can !== selectedWorst);
+                round1Uncertain.push(...uncertain);
+
+                allResults.push({
+                    round: 1,
+                    comparison: currentComparison + 1,
+                    cans: [...currentCans],
+                    best: selectedBest,
+                    worst: selectedWorst
+                });
+            } else if (currentRound === 2) {
+                round2Winners.push(selectedBest);
+
+                allResults.push({
+                    round: 2,
+                    comparison: currentComparison + 1,
+                    cans: [...currentCans],
+                    best: selectedBest
+                });
+            } else if (currentRound === 3) {
+                finalTop3 = [rankSelections.first, rankSelections.second, rankSelections.third];
+
+                allResults.push({
+                    round: 3,
+                    comparison: 1,
+                    cans: [...currentCans],
+                    ranked: [...finalTop3]
+                });
+            }
+
+            // Move to next comparison or round
+            currentComparison++;
+
+            const config = roundStructure[currentRound];
+            if (currentComparison < config.comparisons) {
+                // Save state before showing next comparison
+                saveState();
+                showComparison();
+            } else if (currentRound < 3) {
+                currentRound++;
+                currentComparison = 0;
+                if (currentRound === 3) {
+                    rankSelections = { first: null, second: null, third: null };
+                }
+                // Save state before showing next round
+                saveState();
+                showComparison();
+            } else {
+                // Save final state before showing results
+                saveState();
+                showResults();
+            }
+        }
+
+        function updateProgress() {
+            const totalComparisons = 6;
+            const completed = (currentRound === 1 ? currentComparison :
+                              currentRound === 2 ? 3 + currentComparison :
+                              5 + currentComparison);
+
+            document.getElementById('round-number').textContent = `Round ${currentRound}`;
+            document.getElementById('comparison-count').textContent = `Comparison ${completed + 1} of ${totalComparisons}`;
+            document.getElementById('progress-bar').style.width = ((completed / totalComparisons) * 100) + '%';
+        }
+
+        function showResults() {
+            document.querySelector('.comparison-screen').classList.remove('active');
+            document.querySelector('.results-screen').classList.add('active');
+
+            document.getElementById('result-taster-name').textContent = tasterName;
+
+            // Display top 3
+            const medals = ['🥇', '🥈', '🥉'];
+            const podiumClasses = ['podium-1', 'podium-2', 'podium-3'];
+
+            const resultsTable = document.getElementById('results-table');
+            resultsTable.innerHTML = finalTop3.map((can, index) => `
+                <div class="result-row ${podiumClasses[index]}">
+                    <div class="result-rank">#${index + 1}</div>
+                    <div class="result-can">Can ${can}</div>
+                    <div class="result-medal">${medals[index]}</div>
+                </div>
+            `).join('');
+
+            // Generate enhanced CSV export with detailed comparison data
+            const timestamp = new Date().toISOString();
+
+            // Calculate win statistics for each can
+            const canStats = {};
+            for (let i = 1; i <= TOTAL_CANS; i++) {
+                canStats[i] = { wins: 0, losses: 0, appeared: 0 };
+            }
+
+            // Process all results to count wins/losses
+            allResults.forEach(result => {
+                if (result.round === 1) {
+                    canStats[result.best].wins++;
+                    canStats[result.best].appeared++;
+                    canStats[result.worst].losses++;
+                    canStats[result.worst].appeared++;
+                    // Middle two cans just appeared
+                    result.cans.forEach(can => {
+                        if (can !== result.best && can !== result.worst) {
+                            canStats[can].appeared++;
+                        }
+                    });
+                } else if (result.round === 2) {
+                    canStats[result.best].wins++;
+                    result.cans.forEach(can => {
+                        canStats[can].appeared++;
+                        if (can !== result.best) {
+                            canStats[can].losses++;
+                        }
+                    });
+                } else if (result.round === 3) {
+                    result.ranked.forEach((can, index) => {
+                        canStats[can].appeared++;
+                        if (index === 0) canStats[can].wins++;
+                    });
+                }
+            });
+
+            // Build CSV with summary and detailed comparison data
+            let csvLines = [];
+
+            // Summary header
+            csvLines.push('SUMMARY');
+            csvLines.push(`Taster,FirstPlace,SecondPlace,ThirdPlace,Timestamp`);
+            csvLines.push(`${tasterName},${finalTop3[0]},${finalTop3[1]},${finalTop3[2]},${timestamp}`);
+            csvLines.push('');
+
+            // Detailed comparison results
+            csvLines.push('COMPARISON DETAILS');
+            csvLines.push('Round,Comparison,CansCompared,Winner,Loser');
+            allResults.forEach(result => {
+                if (result.round === 1) {
+                    csvLines.push(`${result.round},${result.comparison},"${result.cans.join('|')}",${result.best},${result.worst}`);
+                } else if (result.round === 2) {
+                    csvLines.push(`${result.round},${result.comparison},"${result.cans.join('|')}",${result.best},`);
+                } else if (result.round === 3) {
+                    csvLines.push(`${result.round},${result.comparison},"${result.cans.join('|')}",${result.ranked[0]},`);
+                }
+            });
+
+            const csvData = csvLines.join('\n');
+            document.getElementById('export-data').textContent = csvData;
+        }
+
+        function copyResults() {
+            const exportText = document.getElementById('export-data').textContent;
+            navigator.clipboard.writeText(exportText).then(() => {
+                alert('Results copied to clipboard!');
+            }).catch(() => {
+                alert('Failed to copy. Please select and copy manually.');
+            });
+        }
+
+        function resetTest() {
+            clearState();
+            document.querySelector('.results-screen').classList.remove('active');
+            document.querySelector('.setup-screen').classList.add('active');
+            document.getElementById('taster-name').value = '';
+
+            // Reset all state variables
+            tasterName = '';
+            currentRound = 1;
+            currentComparison = 0;
+            allResults = [];
+            round1Winners = [];
+            round1Uncertain = [];
+            round2Winners = [];
+            finalTop3 = [];
+            round1Pairings = [];
+        }
+    </script>
+</body>
+</html>
