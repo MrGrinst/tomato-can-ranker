@@ -585,6 +585,19 @@
             showComparison();
         }
 
+        // Double refresh detection to clear localStorage
+        let lastRefreshTime = localStorage.getItem('lastRefreshTime');
+        const currentTime = Date.now();
+
+        if (lastRefreshTime && (currentTime - parseInt(lastRefreshTime)) < 3000) {
+            // Double refresh within 3 seconds - clear everything
+            localStorage.clear();
+            console.log('Double refresh detected - localStorage cleared!');
+        } else {
+            // Store this refresh time
+            localStorage.setItem('lastRefreshTime', currentTime.toString());
+        }
+
         // On page load, check for saved state
         window.addEventListener('DOMContentLoaded', () => {
             if (loadState()) {
